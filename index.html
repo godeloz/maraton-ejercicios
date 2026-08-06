@@ -1,0 +1,617 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Maratón de ejercicios · Brian Kiteley</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Instrument+Serif:ital@0;1&family=Courier+Prime:ital,wght@0,400;0,700;1,400;1,700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#FBFBFD;
+  --surface:#FFFFFF;
+  --ink:#1C1C1E;
+  --ink-soft:#3A3A3C;
+  --muted:#86868B;
+  --hairline:#E5E5EA;
+  --accent:#0A84FF;
+  --accent-soft:rgba(10,132,255,.10);
+  --radius:18px;
+  --ease:cubic-bezier(.2,.8,.2,1);
+  --pane-pad:clamp(24px,4vw,56px);
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%}
+body{
+  background:var(--bg);
+  color:var(--ink);
+  font-family:'Inter',-apple-system,BlinkMacSystemFont,system-ui,sans-serif;
+  font-size:15px;
+  line-height:1.5;
+  letter-spacing:-.011em;
+  -webkit-font-smoothing:antialiased;
+  overflow:hidden;
+}
+::selection{background:var(--accent-soft);color:var(--ink)}
+button{font:inherit;color:inherit;background:none;border:0;cursor:pointer;letter-spacing:inherit}
+:focus-visible{outline:2px solid var(--accent);outline-offset:3px;border-radius:6px}
+
+/* ── Chrome ─────────────────────────────────────────── */
+.top{
+  position:fixed;top:0;left:0;right:0;height:52px;z-index:40;
+  display:flex;align-items:center;justify-content:space-between;
+  padding:0 clamp(16px,3vw,28px);
+  background:rgba(251,251,253,.72);
+  backdrop-filter:saturate(180%) blur(20px);
+  -webkit-backdrop-filter:saturate(180%) blur(20px);
+  border-bottom:1px solid var(--hairline);
+}
+.brand{display:flex;align-items:baseline;gap:9px;min-width:0}
+.brand b{font-weight:600;font-size:14px;white-space:nowrap}
+.brand span{color:var(--muted);font-size:12.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.top nav{display:flex;gap:2px;flex-shrink:0}
+.top nav button{
+  font-size:13px;color:var(--muted);padding:7px 11px;border-radius:8px;
+  transition:color .2s var(--ease),background .2s var(--ease);
+}
+.top nav button:hover{color:var(--ink);background:rgba(0,0,0,.04)}
+
+/* ── Layout ─────────────────────────────────────────── */
+main{
+  position:fixed;inset:52px 0 0 0;
+  display:grid;grid-template-columns:minmax(340px,42%) 1fr;
+}
+.pane{position:relative;height:100%;display:flex;flex-direction:column;min-width:0}
+.pane-card{border-right:1px solid var(--hairline)}
+.pane-write{background:var(--surface)}
+
+/* ── Empty state / deck ─────────────────────────────── */
+.deck-empty{
+  flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;
+  gap:34px;padding:var(--pane-pad);text-align:center;
+}
+.stack{position:relative;width:132px;height:184px}
+.stack i{
+  position:absolute;inset:0;border-radius:14px;background:var(--surface);
+  border:1px solid var(--hairline);
+  box-shadow:0 1px 2px rgba(0,0,0,.04),0 8px 24px -12px rgba(0,0,0,.18);
+  transition:transform .6s var(--ease);
+}
+.stack i:nth-child(1){transform:rotate(-7deg) translate(-7px,3px)}
+.stack i:nth-child(2){transform:rotate(4deg) translate(4px,-1px)}
+.stack i:nth-child(3){transform:rotate(-1deg)}
+.stack.riffle i:nth-child(1){transform:rotate(-24deg) translate(-40px,10px)}
+.stack.riffle i:nth-child(2){transform:rotate(17deg) translate(34px,-6px)}
+.stack.riffle i:nth-child(3){transform:rotate(-2deg) scale(1.04)}
+.deck-empty p{color:var(--muted);max-width:30ch;font-size:14px}
+
+/* ── Card ───────────────────────────────────────────── */
+.card-scroll{flex:1;overflow-y:auto;padding:var(--pane-pad);padding-bottom:96px}
+.card{max-width:44ch}
+.card.enter{animation:rise .55s var(--ease) both}
+@keyframes rise{from{opacity:0;transform:translateY(14px) scale(.985)}to{opacity:1;transform:none}}
+.eyebrow{
+  display:flex;align-items:center;gap:10px;margin-bottom:22px;
+  font-size:11.5px;font-weight:500;letter-spacing:.07em;text-transform:uppercase;color:var(--muted);
+}
+.eyebrow em{font-style:normal;color:var(--accent);transition:color .5s var(--ease)}
+.eyebrow hr{flex:1;border:0;border-top:1px solid var(--hairline)}
+.card h1{
+  font-family:'Instrument Serif',Georgia,serif;font-weight:400;
+  font-size:clamp(34px,4.4vw,50px);line-height:1.04;letter-spacing:-.015em;
+  margin-bottom:22px;text-wrap:balance;
+}
+.card .consigna{font-size:16.5px;line-height:1.62;color:var(--ink-soft);letter-spacing:-.005em}
+.card .consigna strong{font-weight:600;color:var(--ink);box-shadow:inset 0 -.42em 0 var(--accent-soft);transition:box-shadow .5s var(--ease)}
+.reveal{margin-top:30px}
+.reveal>button{
+  display:inline-flex;align-items:center;gap:7px;font-size:13px;color:var(--accent);
+  padding:6px 12px 6px 10px;border-radius:999px;background:var(--accent-soft);
+  transition:opacity .2s var(--ease),background .5s var(--ease),color .5s var(--ease);
+}
+.reveal>button:hover{opacity:.75}
+.reveal>button svg{transition:transform .35s var(--ease)}
+.reveal.open>button svg{transform:rotate(180deg)}
+.reveal .body{
+  overflow:hidden;max-height:0;opacity:0;
+  transition:max-height .5s var(--ease),opacity .35s var(--ease),margin .5s var(--ease);
+}
+.reveal.open .body{max-height:460px;opacity:1;margin-top:16px}
+.reveal .body p{
+  font-family:'Instrument Serif',Georgia,serif;font-style:italic;
+  font-size:18px;line-height:1.52;color:var(--ink-soft);
+  border-left:2px solid var(--accent);padding-left:18px;
+  transition:border-color .5s var(--ease);
+}
+.card-foot{
+  position:absolute;left:0;right:0;bottom:0;padding:16px var(--pane-pad);
+  display:flex;align-items:center;gap:14px;
+  background:linear-gradient(to top,var(--bg) 62%,rgba(251,251,253,0));
+}
+
+/* ── Buttons ────────────────────────────────────────── */
+.btn{
+  display:inline-flex;align-items:center;gap:8px;
+  padding:10px 18px;border-radius:999px;font-size:14px;font-weight:500;
+  background:var(--accent);color:#fff;
+  box-shadow:0 1px 2px rgba(0,0,0,.06);
+  transition:transform .25s var(--ease),filter .25s var(--ease),background .5s var(--ease);
+}
+.btn:hover{filter:brightness(1.08)}
+.btn:active{transform:scale(.965)}
+.btn.ghost{background:transparent;color:var(--muted);box-shadow:none;padding:10px 12px}
+.btn.ghost:hover{color:var(--ink);background:rgba(0,0,0,.04)}
+.btn.tinted{background:var(--accent-soft);color:var(--accent);box-shadow:none}
+
+/* ── Editor ─────────────────────────────────────────── */
+.tools{
+  display:flex;align-items:center;gap:4px;height:46px;flex-shrink:0;
+  padding:0 clamp(16px,2.4vw,24px);border-bottom:1px solid var(--hairline);
+}
+.tools button{
+  width:32px;height:32px;border-radius:8px;display:grid;place-items:center;color:var(--muted);
+  transition:background .18s var(--ease),color .18s var(--ease);
+}
+.tools button:hover{background:rgba(0,0,0,.045);color:var(--ink)}
+.tools button.on{color:var(--accent);background:var(--accent-soft)}
+.tools .sep{width:1px;height:18px;background:var(--hairline);margin:0 7px}
+.tools .spacer{flex:1}
+.meta{font-size:12px;color:var(--muted);font-variant-numeric:tabular-nums;white-space:nowrap}
+.saved{font-size:12px;color:var(--muted);opacity:0;transition:opacity .45s var(--ease)}
+.saved.show{opacity:1}
+#timer{
+  font-size:12.5px;font-variant-numeric:tabular-nums;color:var(--muted);
+  padding:5px 10px;border-radius:8px;transition:color .3s var(--ease),background .3s var(--ease);
+}
+#timer:hover{background:rgba(0,0,0,.045);color:var(--ink)}
+#timer.run{color:var(--accent);background:var(--accent-soft)}
+#timer.done{color:#FF375F;background:rgba(255,55,95,.1)}
+
+.editor-wrap{flex:1;overflow-y:auto;display:flex;justify-content:center}
+#editor{
+  width:100%;max-width:68ch;padding:clamp(30px,5vh,56px) clamp(20px,4vw,40px) 40vh;
+  font-family:'Courier Prime',ui-monospace,monospace;
+  font-size:16px;line-height:1.85;letter-spacing:0;color:var(--ink);
+  outline:none;
+}
+#editor:empty:before{content:attr(data-ph);color:#C7C7CC;pointer-events:none}
+#editor p{margin-bottom:1.05em}
+.write-foot{
+  flex-shrink:0;border-top:1px solid var(--hairline);
+  padding:14px clamp(16px,2.4vw,24px);display:flex;justify-content:flex-end;
+}
+.locked{flex:1;display:grid;place-items:center;padding:40px;text-align:center;color:var(--muted);font-size:14px}
+
+/* ── Overlays ───────────────────────────────────────── */
+.sheet{
+  position:fixed;inset:0;z-index:60;display:none;
+  background:rgba(251,251,253,.86);
+  backdrop-filter:saturate(180%) blur(24px);-webkit-backdrop-filter:saturate(180%) blur(24px);
+  overflow-y:auto;
+}
+.sheet.open{display:block;animation:fade .3s var(--ease) both}
+@keyframes fade{from{opacity:0}to{opacity:1}}
+.sheet-in{max-width:760px;margin:0 auto;padding:clamp(40px,8vh,90px) clamp(22px,5vw,40px) 90px;animation:rise .5s var(--ease) both}
+.sheet h2{font-family:'Instrument Serif',serif;font-weight:400;font-size:38px;letter-spacing:-.015em;margin-bottom:6px}
+.sheet .sub{color:var(--muted);font-size:14px;margin-bottom:34px}
+.close{position:fixed;top:12px;right:clamp(16px,3vw,28px);z-index:61}
+
+.index-list{display:grid;gap:2px}
+.index-list button{
+  display:flex;align-items:center;gap:14px;width:100%;text-align:left;
+  padding:13px 14px;border-radius:12px;transition:background .18s var(--ease);
+}
+.index-list button:hover{background:rgba(0,0,0,.04)}
+.index-list .n{font-size:12px;color:var(--muted);font-variant-numeric:tabular-nums;width:22px;flex-shrink:0}
+.index-list .t{flex:1;font-size:15px;font-weight:500}
+.index-list .dot{width:7px;height:7px;border-radius:50%;background:transparent;flex-shrink:0}
+.index-list .dot.has{background:var(--accent)}
+
+.about p{font-size:16px;line-height:1.68;color:var(--ink-soft);margin-bottom:20px;max-width:60ch}
+.about .pull{font-family:'Instrument Serif',serif;font-style:italic;font-size:21px;line-height:1.5;color:var(--ink)}
+.about .credit{margin-top:38px;padding-top:22px;border-top:1px solid var(--hairline);font-size:13.5px;color:var(--muted)}
+
+/* ── Export view ────────────────────────────────────── */
+#export .sheet-in{max-width:700px}
+.ex-head{margin-bottom:38px}
+.ex-head .k{font-size:11.5px;letter-spacing:.07em;text-transform:uppercase;color:var(--accent);margin-bottom:10px}
+.ex-head h2{font-size:clamp(30px,4.4vw,44px);line-height:1.05;margin-bottom:16px}
+.ex-head .c{font-size:14.5px;line-height:1.6;color:var(--muted);max-width:56ch}
+.ex-body{
+  font-family:'Courier Prime',monospace;font-size:15.5px;line-height:1.9;color:var(--ink);
+  padding-top:30px;border-top:1px solid var(--hairline);white-space:pre-wrap;
+}
+.ex-body p{margin-bottom:1.05em}
+.ex-actions{display:flex;gap:10px;flex-wrap:wrap;margin-top:44px;padding-top:24px;border-top:1px solid var(--hairline)}
+
+/* ── Mobile ─────────────────────────────────────────── */
+.tabs{display:none}
+@media(max-width:880px){
+  main{grid-template-columns:1fr;inset:52px 0 0 0}
+  .pane{display:none}
+  .pane.active{display:flex}
+  .pane-card{border-right:0}
+  .tabs{
+    display:flex;position:fixed;bottom:0;left:0;right:0;z-index:41;height:58px;
+    padding-bottom:env(safe-area-inset-bottom);
+    background:rgba(251,251,253,.82);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);
+    border-top:1px solid var(--hairline);
+  }
+  .tabs button{flex:1;font-size:13px;color:var(--muted);transition:color .2s var(--ease)}
+  .tabs button.on{color:var(--accent);font-weight:500}
+  .card-scroll,.editor-wrap{padding-bottom:120px}
+  .card-foot{bottom:58px}
+  .write-foot{padding-bottom:70px}
+  #editor{padding-bottom:30vh}
+}
+@media(prefers-reduced-motion:reduce){
+  *{animation-duration:.01ms!important;transition-duration:.01ms!important}
+}
+@media print{
+  .top,.tabs,.close,.ex-actions,main{display:none!important}
+  body{overflow:visible;background:#fff}
+  .sheet:not(.open){display:none!important}
+  .sheet.open{position:static;display:block!important;background:#fff;backdrop-filter:none}
+  .sheet-in{animation:none;padding:0;max-width:none}
+  .ex-body{font-size:12pt}
+}
+</style>
+</head>
+<body>
+
+<header class="top">
+  <div class="brand"><b>Maratón de ejercicios</b><span>Brian Kiteley</span></div>
+  <nav>
+    <button id="nav-index">Índice</button>
+    <button id="nav-about">Acerca de</button>
+  </nav>
+</header>
+
+<main>
+  <!-- CARTA -->
+  <section class="pane pane-card active" id="pane-card">
+    <div class="deck-empty" id="empty">
+      <div class="stack" id="stack"><i></i><i></i><i></i></div>
+      <p>Diecisiete retos para escribir mucho, escribir raro, escribir lo que no se había escrito antes.</p>
+      <button class="btn" id="start">Barajar cartas</button>
+    </div>
+
+    <div class="card-scroll" id="cardScroll" style="display:none">
+      <article class="card" id="card">
+        <div class="eyebrow"><em id="count"></em><hr></div>
+        <h1 id="title"></h1>
+        <div class="consigna" id="consigna"></div>
+        <div class="reveal" id="reveal"></div>
+      </article>
+    </div>
+    <div class="card-foot" id="cardFoot" style="display:none">
+      <button class="btn tinted" id="shuffle">Barajar de nuevo</button>
+      <span class="meta" id="deckNote"></span>
+    </div>
+  </section>
+
+  <!-- ESCRITURA -->
+  <section class="pane pane-write" id="pane-write">
+    <div class="tools" id="tools" style="display:none">
+      <button data-cmd="bold" title="Negrita (⌘B)" aria-label="Negrita"><svg width="15" height="15" viewBox="0 0 16 16" fill="currentColor"><path d="M4.5 2.5h4.2c2 0 3.3 1 3.3 2.7 0 1.1-.6 1.9-1.6 2.3 1.3.3 2.1 1.3 2.1 2.6 0 1.9-1.4 3-3.7 3H4.5V2.5Zm2 4.3h1.8c.9 0 1.5-.5 1.5-1.3s-.6-1.2-1.5-1.2H6.5v2.5Zm0 4.5h2c1 0 1.6-.5 1.6-1.3s-.6-1.3-1.6-1.3h-2v2.6Z"/></svg></button>
+      <button data-cmd="italic" title="Cursiva (⌘I)" aria-label="Cursiva"><svg width="15" height="15" viewBox="0 0 16 16" fill="currentColor"><path d="M6.4 2.5h5.3l-.3 1.4H9.7l-1.8 8.2h1.7l-.3 1.4H4l.3-1.4h1.8l1.8-8.2H6.1l.3-1.4Z"/></svg></button>
+      <span class="sep"></span>
+      <button data-cmd="undo" title="Deshacer" aria-label="Deshacer"><svg width="15" height="15" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7h7a3.5 3.5 0 0 1 0 7H7"/><path d="m5.6 4.2-2.6 2.8 2.6 2.8"/></svg></button>
+      <button data-cmd="redo" title="Rehacer" aria-label="Rehacer"><svg width="15" height="15" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M13 7H6a3.5 3.5 0 0 0 0 7h3"/><path d="m10.4 4.2 2.6 2.8-2.6 2.8"/></svg></button>
+      <span class="sep"></span>
+      <button id="timer" title="Cronómetro">Cronómetro</button>
+      <span class="spacer"></span>
+      <span class="saved" id="saved">Guardado</span>
+      <span class="meta" id="words" style="margin-left:14px">0 palabras</span>
+    </div>
+
+    <div class="locked" id="locked">Baraja una carta para empezar a escribir.</div>
+
+    <div class="editor-wrap" id="editorWrap" style="display:none">
+      <div id="editor" contenteditable="true" spellcheck="true" data-ph="Escriba aquí…"></div>
+    </div>
+    <div class="write-foot" id="writeFoot" style="display:none">
+      <button class="btn" id="doExport">Exportar ejercicio</button>
+    </div>
+  </section>
+</main>
+
+<nav class="tabs">
+  <button class="on" data-tab="card">Carta</button>
+  <button data-tab="write">Escritura</button>
+</nav>
+
+<!-- ÍNDICE -->
+<div class="sheet" id="index">
+  <button class="btn ghost close" data-close>Cerrar</button>
+  <div class="sheet-in">
+    <h2>El mazo</h2>
+    <p class="sub">Diecisiete cartas. El punto marca las que ya tienen texto.</p>
+    <div class="index-list" id="indexList"></div>
+  </div>
+</div>
+
+<!-- ACERCA DE -->
+<div class="sheet" id="about">
+  <button class="btn ghost close" data-close>Cerrar</button>
+  <div class="sheet-in about">
+    <h2>Acerca de</h2>
+    <p class="sub">Sobre el origen de estas cartas</p>
+    <p class="pull">«Cada frase educa a la siguiente frase, y cada párrafo educa al siguiente párrafo.»</p>
+    <p>Esta idea animó a Kiteley a dejar que su ficción se encontrara a sí misma, a escuchar lo que la prosa estaba diciendo en lugar de intentar imponerle una dirección. Pasa la mayor parte de su tiempo leyendo y solo una fracción escribiendo: hace investigación —una clase de lectura activa, exploratoria y hasta canibalizadora—, toma fragmentos de otras prosas y los utiliza para inspirar e infectar la propia. Lee y reacciona ante pasajes inusuales, empleando otras prosas como una especie de andamiaje.</p>
+    <p>Una maratón de escritura es eso: correr largo, sin detenerse demasiado a pensar. Retos para mirar lo de siempre como si fuera la primera vez, hurgar en el propio archivo —cumpleaños, comidas, vergüenzas, canciones que uno se sabe de memoria—, probar voces que no son la propia, inventar personajes que ocupen espacio, escuchar lo que la gente dice (y lo que se calla) y, cuando haga falta, soltar el tiempo: congelarlo, acelerarlo, dejar que se quede dormido.</p>
+    <p class="pull">La idea no es escribir bien. La idea es escribir mucho, escribir raro, escribir lo que no se había escrito antes.</p>
+    <div class="credit">
+      Ejercicios adaptados de <em>The 3 A.M. Epiphany: Uncommon Writing Exercises that Transform Your Fiction</em>, de Brian Kiteley (Writer's Digest Books, 2005).<br>
+      Los textos se guardan únicamente en este navegador.
+    </div>
+  </div>
+</div>
+
+<!-- EXPORTAR -->
+<div class="sheet" id="export">
+  <button class="btn ghost close" data-close>Cerrar</button>
+  <div class="sheet-in">
+    <div class="ex-head">
+      <div class="k" id="exK"></div>
+      <h2 id="exTitle"></h2>
+      <div class="c" id="exC"></div>
+    </div>
+    <div class="ex-body" id="exBody"></div>
+    <div class="ex-actions">
+      <button class="btn" id="exDownload">Descargar .txt</button>
+      <button class="btn tinted" id="exPrint">Imprimir o guardar en PDF</button>
+      <button class="btn ghost" data-close>Volver a escribir</button>
+    </div>
+  </div>
+</div>
+
+<script>
+/* ══ Datos ═══════════════════════════════════════════ */
+const CARTAS = [
+{t:"La ejecución",
+ c:"Escribe sobre una ejecución en primera persona. El narrador puede ser un participante (un guardia de prisión, un juez, un familiar de la víctima, etc.), un testigo o la persona que va a ser ejecutada. No moralices. Intenta ser calmo y preciso en los detalles. Haz que al lector le resulte lo más difícil posible entender tu opinión sobre lo que está ocurriendo.",
+ r:"Pone a prueba tu habilidad para escribir desde un punto de vista emocionalmente cargado sin recurrir a juicios explícitos. Se trata de dejar que la escena hable por sí misma a través de una voz contenida, incluso fría, para lograr un efecto más poderoso."},
+{t:"Dios",
+ c:"Cuenta una historia desde el punto de vista de un dios. No tiene que ser el Dios de la tradición cristiana. Puedes inventar una deidad o usar una de alguna otra mitología. Intenta resistirte a hacer que este dios sea omnisciente u omnipotente. Debe tener limitaciones reales, puntos ciegos o deseos.",
+ r:"Invita a narrar desde una perspectiva «superior», pero limitada, con una voz narrativa que combine lo trascendente con lo falible. La tensión entre el poder y la debilidad es clave para dar profundidad al relato."},
+{t:"El nosotros real",
+ c:"Escribe una historia en primera persona del plural. Este «nosotros» puede ser un grupo muy pequeño o muy grande. Puedes hacer que el «nosotros» sea irónico (el narrador puede no sentirse realmente parte del grupo) o emocionalmente sincero. Puedes escribir como si el grupo fuera <strong>una mente colectiva</strong>, o hacer que la <strong>conciencia individual</strong> del narrador se asome ocasionalmente.",
+ r:"Explora un punto de vista poco común pero muy potente. La voz en plural puede producir un efecto de colectividad, conspiración, pertenencia o alienación, dependiendo de cómo la manejes. Ideal para experimentar con identidad compartida, presión grupal o memoria colectiva."},
+{t:"No ideas, sino en las cosas",
+ c:"Escribe una escena que comunique una <strong>emoción intensa</strong> (como miedo, deseo, culpa, soledad, júbilo) sin <strong>nombrar nunca la emoción</strong> ni utilizar ninguna palabra abstracta relacionada con ella. Usa solamente <strong>objetos concretos</strong>, acciones, percepciones sensoriales y detalles específicos para transmitir lo que siente el personaje.",
+ r:"Entrena tu capacidad de mostrar en lugar de decir («show, don't tell»), uno de los principios más esenciales de la escritura narrativa. La emoción debe emerger del mundo físico —lo que se toca, ve, oye, huele o se hace— no de la explicación mental."},
+{t:"Sinestesia",
+ c:"Escribe una escena en la que al menos un personaje experimente el mundo a través de <strong>una forma de percepción sensorial cruzada</strong>: sonidos que tienen color, texturas que tienen sabor, números que tienen temperatura, palabras que huelen o cualquier otra combinación poco habitual de los sentidos. No expliques este fenómeno: simplemente deja que ocurra.",
+ r:"Se basa en el fenómeno real de la sinestesia, pero lo puedes usar de forma literal, metafórica o fantástica. Su objetivo es intensificar la experiencia sensorial en tu escritura y desafiar los límites del lenguaje descriptivo convencional."},
+{t:"Sueño con despertador",
+ c:"Escribe un sueño que termine abruptamente con el sonido de un despertador. El sueño debe no tener lógica aparente, pero debe usar imágenes concretas, físicas y específicas en lugar de símbolos o explicaciones. Intenta no justificar el sueño ni interpretarlo; deja que el lector lo experimente como lo haría alguien que lo sueña: con sorpresa, desconcierto, intensidad visual. El sonido del despertador debe interrumpir el sueño de forma tajante.",
+ r:"Busca explorar lo onírico como experiencia narrativa sin caer en el análisis ni en la alegoría, entrenando al escritor para narrar lo ilógico con coherencia sensorial, y para trabajar el ritmo y el corte brusco del final como recurso estructural."},
+{t:"Película enlatada",
+ c:"Escribe una escena que transcurra en una situación altamente familiar del cine o la televisión: una pelea de bar, una persecución en coche, una escena de interrogatorio, una declaración de amor bajo la lluvia, un tiroteo en un almacén, etc. Tu objetivo es <strong>escribir esta escena sin clichés</strong>. Usa todos los recursos literarios a tu disposición (imágenes sensoriales, punto de vista, ritmo, detalle) para hacer nueva una escena que hemos visto mil veces.",
+ r:"Busca desautomatizar el relato visual: evitar los lugares comunes, los diálogos prefabricados, las poses conocidas, y reimaginar lo «enlatado» con una mirada fresca, casi como si tu personaje no hubiera visto nunca una película."},
+{t:"Nombres",
+ c:"Escribe una escena en la que un personaje cambie su nombre, o en la que el <strong>significado o la percepción de su nombre sea clave en el desarrollo</strong> de la historia. El nombre puede haber sido impuesto, elegido, ocultado, mal pronunciado, mal entendido o robado. Explora cómo ese cambio o conflicto afecta la identidad del personaje.",
+ r:"Invita a pensar el nombre propio como carga narrativa: no solo como etiqueta, sino como parte viva del carácter, la historia y el conflicto de una persona. Es útil para trabajar temas de identidad, desarraigo, transformación o pertenencia."},
+{t:"Maldad",
+ c:"Escribe una escena en la que aparezca un personaje verdaderamente malvado. <strong>No expliques su comportamiento</strong> ni ofrezcas justificaciones psicológicas o sociales. Tampoco adoptes un tono condenatorio. Simplemente muestra sus acciones y deja que el lector llegue a sus propias conclusiones. Concéntrate en los detalles físicos, gestos y lenguaje para revelar esa maldad.",
+ r:"Desafía la necesidad narrativa de explicar o redimir al villano. Su objetivo es entrenar la escritura desapegada y precisa, y permitir que el lector experimente el mal sin intermediación moral o psicológica."},
+{t:"El caos sigue",
+ c:"Escribe una escena en la que la mera presencia de un personaje provoque caos en su entorno. Este personaje <strong>no necesita hacer nada malo de forma directa</strong>: el desorden, la tensión o la destrucción surgen naturalmente a su paso, como si su energía o existencia desajustara todo lo que lo rodea. No expliques por qué. Solo muestra los efectos concretos.",
+ r:"Invita a construir un personaje cuya influencia narrativa es disruptiva, incluso sin actuar de forma consciente. Es útil para pensar en la tensión dramática como algo que puede emanar del carácter o la presencia, no solo de las decisiones."},
+{t:"Reconocimiento facial",
+ c:"Escribe una escena desde el punto de vista de un personaje que no puede reconocer rostros, ni siquiera los de las personas más cercanas. Esta condición se llama prosopagnosia, pero no necesitas mencionarla ni explicarla. Simplemente muestra cómo el personaje navega por el mundo, interactúa, se confunde o se adapta a esta dificultad.",
+ r:"Trabaja el punto de vista sensorial y cognitivo como herramienta narrativa. Obliga a salir de la percepción común y a desarrollar estrategias de identificación no visual (voz, gestos, ropa, contextos), lo que agudiza la observación y genera tensión o vulnerabilidad."},
+{t:"La discusión",
+ c:"Escribe una escena que consista únicamente en una discusión entre dos personas que tienen una relación íntima (pareja, amantes, ex, hermanos, amigas cercanas, etc.). No describas la escena ni los pensamientos internos de los personajes: utiliza solo diálogo directo, sin acotaciones ni descripciones.",
+ r:"Busca que desarrolles conflicto emocional solo a través de la voz, el tono, el ritmo, los silencios y las repeticiones del diálogo. Sin narración intercalada, debes confiar en el lenguaje hablado para revelar el carácter, la tensión y la historia compartida."},
+{t:"Opciones binarias",
+ c:"Escribe una escena que enfrente a dos personajes que representen <strong>valores opuestos</strong>: razón vs. emoción, orden vs. caos, fe vs. duda, acción vs. contemplación, etc. No los conviertas en caricaturas ni en símbolos. Hazlos complejos, humanos y contradictorios, incluso dentro de sus posturas. Permite que el conflicto emerja de sus diferencias sin resolverlo completamente.",
+ r:"Diseñado para explorar el conflicto dramático basado en tensiones conceptuales encarnadas en personajes vivos. Sirve para entrenar el diálogo ideológico, los matices y el equilibrio narrativo sin recurrir a simplificaciones."},
+{t:"Compañero silencioso",
+ c:"Escribe una escena de diálogo en la que <strong>solo una persona hable</strong>. El otro personaje está presente, pero no dice ni una palabra. Sin embargo, su presencia debe sentirse con fuerza: a través de gestos, miradas, reacciones físicas o incluso por lo que no dice. La escena debe avanzar y revelar tensión, conflicto o intimidad solo a través de lo que dice el hablante y lo que se deduce del silencio del otro.",
+ r:"Explora el poder del silencio como forma de respuesta narrativa. Sirve para trabajar el subtexto, el lenguaje corporal implícito y la voz de un personaje a través de su ausencia verbal."},
+{t:"La primera mentira",
+ c:"Escribe una escena de diálogo en la que <strong>un personaje dice su primera mentira</strong> importante en la vida. Este personaje puede ser un niño, adolescente o adulto joven, pero la mentira debe marcar un antes y un después en su desarrollo. No señales directamente que está mintiendo; deja que el lector lo deduzca por el contexto, el tono, el lenguaje corporal o las consecuencias. La escena debe revelar tanto la mentira como lo que la motiva, sin explicarla de forma obvia.",
+ r:"Se enfoca en cómo el lenguaje puede ocultar y al mismo tiempo revelar. Entrena la escritura de diálogos con subtexto e invita a narrar un momento clave de transformación personal con sutileza y tensión."},
+{t:"Protección de testigos",
+ c:"Escribe una escena desde el punto de vista de alguien que ha tenido que cambiar completamente de identidad: nuevo nombre, nueva ciudad, nueva vida. Mientras transcurre la escena, lucha por recordar quién era antes y por ocultar lo que es ahora. No expliques directamente por qué está en esa situación ni qué crimen presenció; enfócate en los pequeños gestos, pensamientos, hábitos o lapsus que revelan la tensión entre el pasado oculto y el presente fabricado.",
+ r:"Trabaja el conflicto entre identidad, memoria y simulación. Es ideal para explorar el lenguaje interno, el detalle cotidiano y las fisuras entre lo que se muestra y lo que se oculta."},
+{t:"El planeta de los conejos",
+ c:"Escribe una escena en la que un personaje esté pasando por un mal día, pero en medio de ese día tiene <strong>una fantasía repentina</strong> o <strong>una visión breve de cómo debería haber sido ese día</strong>. La escena debe moverse entre el mundo real (gris, difícil, incómodo) y este momento fugaz de perfección imaginada, como una especie de consuelo o escape mental.",
+ r:"Explora la tensión entre realidad y deseo emocional, usando la imaginación no como evasión fantástica, sino como forma de revelar lo que el personaje anhela profundamente. Ideal para trabajar el contraste tonal y la estructura en espejo."}
+];
+
+const ACENTOS=[
+ {h:"#0A84FF",s:"rgba(10,132,255,.10)"},
+ {h:"#FF375F",s:"rgba(255,55,95,.10)"},
+ {h:"#30B14D",s:"rgba(48,177,77,.11)"},
+ {h:"#BF5AF2",s:"rgba(191,90,242,.11)"},
+ {h:"#F08000",s:"rgba(240,128,0,.11)"},
+ {h:"#00A5B5",s:"rgba(0,165,181,.11)"},
+ {h:"#E0348B",s:"rgba(224,52,139,.10)"}
+];
+
+/* ══ Almacenamiento (con degradación) ════════════════ */
+const KEY="maraton-kiteley-v1";
+let mem={};
+const store={
+  read(){ try{ return JSON.parse(localStorage.getItem(KEY)||"{}"); }catch(e){ return mem; } },
+  write(d){ mem=d; try{ localStorage.setItem(KEY,JSON.stringify(d)); }catch(e){} }
+};
+let datos=store.read();
+
+/* ══ Estado ══════════════════════════════════════════ */
+let mazo=[],puntero=0,actual=null,vuelta=1;
+const $=s=>document.querySelector(s);
+
+function barajar(){
+  const idx=CARTAS.map((_,i)=>i);
+  for(let i=idx.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[idx[i],idx[j]]=[idx[j],idx[i]];}
+  if(actual!==null&&idx[0]===actual&&idx.length>1){[idx[0],idx[1]]=[idx[1],idx[0]];}
+  mazo=idx;puntero=0;
+}
+
+function siguiente(){
+  if(!mazo.length||puntero>=mazo.length){ barajar(); if(actual!==null)vuelta++; }
+  mostrar(mazo[puntero++]);
+}
+
+function mostrar(i){
+  guardar(true);
+  actual=i;
+  const c=CARTAS[i],a=ACENTOS[i%ACENTOS.length];
+  document.documentElement.style.setProperty('--accent',a.h);
+  document.documentElement.style.setProperty('--accent-soft',a.s);
+
+  $("#empty").style.display="none";
+  $("#cardScroll").style.display="block";
+  $("#cardFoot").style.display="flex";
+  $("#locked").style.display="none";
+  $("#tools").style.display="flex";
+  $("#editorWrap").style.display="flex";
+  $("#writeFoot").style.display="flex";
+
+  $("#count").textContent="Carta "+(puntero||1)+" de "+CARTAS.length;
+  $("#deckNote").textContent = puntero>=CARTAS.length ? "Última del mazo" : (vuelta>1?"Vuelta "+vuelta:"");
+  $("#title").textContent=c.t;
+  $("#consigna").innerHTML=c.c;
+  $("#reveal").className="reveal";
+  $("#reveal").innerHTML='<button type="button">¿Qué entrena esta carta?'+
+    '<svg width="11" height="11" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="m2.5 4.5 3.5 3.5 3.5-3.5"/></svg></button>'+
+    '<div class="body"><p>'+c.r+'</p></div>';
+  $("#reveal>button").onclick=()=>{ $("#reveal").classList.toggle("open"); };
+
+  const card=$("#card");card.classList.remove("enter");void card.offsetWidth;card.classList.add("enter");
+  $("#cardScroll").scrollTop=0;
+
+  $("#editor").innerHTML=(datos[i]&&datos[i].html)||"";
+  contar();
+  resetTimer();
+  if(window.innerWidth<=880) tab("card");
+}
+
+/* ══ Editor ══════════════════════════════════════════ */
+const ed=$("#editor");
+let tSave;
+function guardar(inmediato){
+  if(actual===null)return;
+  const html=ed.innerHTML.trim();
+  const texto=ed.innerText.trim();
+  if(!texto&&!datos[actual])return;
+  datos[actual]={html:html,fecha:Date.now()};
+  store.write(datos);
+  if(!inmediato){
+    $("#saved").classList.add("show");
+    clearTimeout(tSave);tSave=setTimeout(()=>$("#saved").classList.remove("show"),1600);
+  }
+}
+function contar(){
+  const t=ed.innerText.trim();
+  const n=t?t.split(/\s+/).length:0;
+  $("#words").textContent=n+(n===1?" palabra":" palabras");
+}
+ed.addEventListener("input",()=>{contar();clearTimeout(window._d);window._d=setTimeout(guardar,600);});
+ed.addEventListener("keyup",estadoBotones);
+ed.addEventListener("mouseup",estadoBotones);
+function estadoBotones(){
+  ["bold","italic"].forEach(c=>{
+    const b=document.querySelector('[data-cmd="'+c+'"]');
+    let on=false; try{on=document.queryCommandState(c);}catch(e){}
+    b.classList.toggle("on",on);
+  });
+}
+document.querySelectorAll(".tools [data-cmd]").forEach(b=>{
+  b.addEventListener("mousedown",e=>e.preventDefault());
+  b.addEventListener("click",()=>{document.execCommand(b.dataset.cmd,false,null);ed.focus();estadoBotones();guardar();});
+});
+
+/* ══ Cronómetro ══════════════════════════════════════ */
+const DUR=[0,5,10,15];let dur=0,resto=0,tick=null;
+function resetTimer(){clearInterval(tick);tick=null;dur=0;resto=0;const t=$("#timer");t.className="";t.textContent="Cronómetro";}
+function pinta(){
+  const m=Math.floor(resto/60),s=resto%60;
+  $("#timer").textContent=m+":"+String(s).padStart(2,"0");
+}
+$("#timer").addEventListener("click",()=>{
+  const t=$("#timer");
+  if(tick){clearInterval(tick);tick=null;t.classList.remove("run");return;}
+  if(resto<=0){
+    dur=DUR[(DUR.indexOf(dur)+1)%DUR.length];
+    if(dur===0){resetTimer();return;}
+    resto=dur*60;t.className="";pinta();
+  }
+  t.classList.add("run");t.classList.remove("done");
+  tick=setInterval(()=>{
+    resto--;pinta();
+    if(resto<=0){clearInterval(tick);tick=null;t.className="done";t.textContent="Tiempo";}
+  },1000);
+});
+
+/* ══ Índice ══════════════════════════════════════════ */
+function pintarIndice(){
+  const l=$("#indexList");l.innerHTML="";
+  CARTAS.forEach((c,i)=>{
+    const b=document.createElement("button");
+    const escrito=datos[i]&&datos[i].html&&datos[i].html.replace(/<[^>]*>/g,"").trim();
+    b.innerHTML='<span class="n">'+String(i+1).padStart(2,"0")+'</span><span class="t">'+c.t+'</span><span class="dot'+(escrito?" has":"")+'"></span>';
+    b.onclick=()=>{
+      const p=mazo.indexOf(i);
+      if(p>=0){puntero=p+1;} else {barajar();puntero=1;}
+      mostrar(i);cerrar();
+    };
+    l.appendChild(b);
+  });
+}
+
+/* ══ Exportar ════════════════════════════════════════ */
+function abrirExport(){
+  const c=CARTAS[actual];
+  $("#exK").textContent="Maratón de ejercicios · Carta "+String(actual+1).padStart(2,"0");
+  $("#exTitle").textContent=c.t;
+  $("#exC").innerHTML=c.c;
+  const html=ed.innerHTML.trim();
+  $("#exBody").innerHTML=html||'<span style="color:#C7C7CC">Aún no hay texto escrito.</span>';
+  abrir("#export");
+}
+$("#exDownload").onclick=()=>{
+  const c=CARTAS[actual];
+  const consigna=c.c.replace(/<[^>]*>/g,"");
+  const cuerpo=ed.innerText.trim();
+  const txt=c.t.toUpperCase()+"\n"+"—".repeat(c.t.length)+"\n\n"+consigna+"\n\n\n"+cuerpo+
+    "\n\n\n———\nMaratón de ejercicios · Brian Kiteley, The 3 A.M. Epiphany\n";
+  const a=document.createElement("a");
+  a.href=URL.createObjectURL(new Blob([txt],{type:"text/plain;charset=utf-8"}));
+  a.download=c.t.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g,"").replace(/[^a-z0-9]+/g,"-")+".txt";
+  a.click();URL.revokeObjectURL(a.href);
+};
+$("#exPrint").onclick=()=>window.print();
+
+/* ══ Sheets ══════════════════════════════════════════ */
+function abrir(sel){document.querySelectorAll(".sheet").forEach(s=>s.classList.remove("open"));$(sel).classList.add("open");}
+function cerrar(){document.querySelectorAll(".sheet").forEach(s=>s.classList.remove("open"));}
+document.querySelectorAll("[data-close]").forEach(b=>b.onclick=cerrar);
+$("#nav-index").onclick=()=>{pintarIndice();abrir("#index");};
+$("#nav-about").onclick=()=>abrir("#about");
+$("#doExport").onclick=abrirExport;
+document.addEventListener("keydown",e=>{if(e.key==="Escape")cerrar();});
+
+/* ══ Tabs móviles ════════════════════════════════════ */
+function tab(n){
+  $("#pane-card").classList.toggle("active",n==="card");
+  $("#pane-write").classList.toggle("active",n==="write");
+  document.querySelectorAll(".tabs button").forEach(b=>b.classList.toggle("on",b.dataset.tab===n));
+}
+document.querySelectorAll(".tabs button").forEach(b=>b.onclick=()=>tab(b.dataset.tab));
+
+/* ══ Arranque ════════════════════════════════════════ */
+$("#start").onclick=()=>{
+  const s=$("#stack");s.classList.add("riffle");
+  setTimeout(()=>{s.classList.remove("riffle");siguiente();},420);
+};
+$("#shuffle").onclick=siguiente;
+window.addEventListener("beforeunload",()=>guardar(true));
+</script>
+</body>
+</html>
