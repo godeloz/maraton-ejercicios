@@ -125,7 +125,7 @@ main{
   transition:border-color .5s var(--ease);
 }
 .card-foot{
-  position:absolute;left:0;right:0;bottom:0;padding:16px var(--pane-pad);
+  position:absolute;left:0;right:0;bottom:0;z-index:2;padding:16px var(--pane-pad);
   display:flex;align-items:center;gap:14px;
   background:linear-gradient(to top,var(--bg) 62%,rgba(251,251,253,0));
 }
@@ -225,31 +225,35 @@ main{
 .ex-body p{margin-bottom:1.05em}
 .ex-actions{display:flex;gap:10px;flex-wrap:wrap;margin-top:44px;padding-top:24px;border-top:1px solid var(--hairline)}
 
-/* ── Mobile ─────────────────────────────────────────── */
-.tabs{display:none}
-@media(max-width:880px){
-  main{grid-template-columns:1fr;inset:52px 0 0 0}
-  .pane{display:none}
-  .pane.active{display:flex}
-  .pane-card{border-right:0}
-  .tabs{
-    display:flex;position:fixed;bottom:0;left:0;right:0;z-index:41;height:58px;
-    padding-bottom:env(safe-area-inset-bottom);
-    background:rgba(251,251,253,.82);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);
-    border-top:1px solid var(--hairline);
+/* ── Angosto: se apila, la carta nunca se oculta ─────── */
+@media(max-width:980px){
+  main{grid-template-columns:minmax(270px,40%) 1fr}
+}
+@media(max-width:720px){
+  main{grid-template-columns:1fr;grid-template-rows:minmax(0,42vh) minmax(0,1fr)}
+  .pane-card{border-right:0;border-bottom:1px solid var(--hairline);background:var(--bg)}
+  .card-scroll{padding:22px 22px 12px}
+  .card h1{font-size:29px;margin-bottom:16px}
+  .card .consigna{font-size:15px;line-height:1.58}
+  .eyebrow{margin-bottom:14px}
+  .card-foot{
+    position:sticky;bottom:0;padding:10px 22px 14px;
+    background:linear-gradient(to top,var(--bg) 70%,rgba(251,251,253,0));
   }
-  .tabs button{flex:1;font-size:13px;color:var(--muted);transition:color .2s var(--ease)}
-  .tabs button.on{color:var(--accent);font-weight:500}
-  .card-scroll,.editor-wrap{padding-bottom:120px}
-  .card-foot{bottom:58px}
-  .write-foot{padding-bottom:70px}
-  #editor{padding-bottom:30vh}
+  #editor{padding:26px 22px 30vh;font-size:15.5px}
+  .tools{padding:0 14px}
+  .tools .sep{margin:0 4px}
+}
+@media(max-width:520px){
+  main{grid-template-rows:minmax(0,38vh) minmax(0,1fr)}
+  .brand span{display:none}
+  #words{display:none}
 }
 @media(prefers-reduced-motion:reduce){
   *{animation-duration:.01ms!important;transition-duration:.01ms!important}
 }
 @media print{
-  .top,.tabs,.close,.ex-actions,main{display:none!important}
+  .top,.close,.ex-actions,main{display:none!important}
   body{overflow:visible;background:#fff}
   .sheet:not(.open){display:none!important}
   .sheet.open{position:static;display:block!important;background:#fff;backdrop-filter:none}
@@ -270,7 +274,7 @@ main{
 
 <main>
   <!-- CARTA -->
-  <section class="pane pane-card active" id="pane-card">
+  <section class="pane pane-card" id="pane-card">
     <div class="deck-empty" id="empty">
       <div class="stack" id="stack"><i></i><i></i><i></i></div>
       <p>Diecisiete retos para escribir mucho, escribir raro, escribir lo que no se había escrito antes.</p>
@@ -316,11 +320,6 @@ main{
     </div>
   </section>
 </main>
-
-<nav class="tabs">
-  <button class="on" data-tab="card">Carta</button>
-  <button data-tab="write">Escritura</button>
-</nav>
 
 <!-- ÍNDICE -->
 <div class="sheet" id="index">
@@ -489,7 +488,6 @@ function mostrar(i){
   $("#editor").innerHTML=(datos[i]&&datos[i].html)||"";
   contar();
   resetTimer();
-  if(window.innerWidth<=880) tab("card");
 }
 
 /* ══ Editor ══════════════════════════════════════════ */
@@ -596,14 +594,6 @@ $("#nav-index").onclick=()=>{pintarIndice();abrir("#index");};
 $("#nav-about").onclick=()=>abrir("#about");
 $("#doExport").onclick=abrirExport;
 document.addEventListener("keydown",e=>{if(e.key==="Escape")cerrar();});
-
-/* ══ Tabs móviles ════════════════════════════════════ */
-function tab(n){
-  $("#pane-card").classList.toggle("active",n==="card");
-  $("#pane-write").classList.toggle("active",n==="write");
-  document.querySelectorAll(".tabs button").forEach(b=>b.classList.toggle("on",b.dataset.tab===n));
-}
-document.querySelectorAll(".tabs button").forEach(b=>b.onclick=()=>tab(b.dataset.tab));
 
 /* ══ Arranque ════════════════════════════════════════ */
 $("#start").onclick=()=>{
